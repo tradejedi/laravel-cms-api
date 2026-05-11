@@ -2,14 +2,20 @@
 
 declare(strict_types=1);
 
+use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\AuthorsController;
+use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\BlocksController;
 use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\CategoriesController;
 use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\ContentParamsController;
 use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\ContentRelationsController;
 use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\FaqsController;
 use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\LookupsController;
 use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\MediaController;
+use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\MenusController;
+use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\PagesController;
 use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\PostsController;
 use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\ProConsController;
+use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\SliderItemsController;
+use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\TableBuildersController;
 use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\WhoamiController;
 use Illuminate\Support\Facades\Route;
 
@@ -34,6 +40,9 @@ Route::prefix('api/v1')
             Route::get('/posts', [PostsController::class, 'index']);
             Route::get('/posts/{key}', [PostsController::class, 'show']);
 
+            Route::get('/pages', [PagesController::class, 'index']);
+            Route::get('/pages/{key}', [PagesController::class, 'show']);
+
             Route::get('/posts/{post}/params', [ContentParamsController::class, 'index']);
             Route::get('/posts/{post}/faqs', [FaqsController::class, 'index']);
             Route::get('/posts/{post}/pro-cons', [ProConsController::class, 'index']);
@@ -49,6 +58,27 @@ Route::prefix('api/v1')
             });
         });
 
+        Route::middleware('abilities:block:read')->group(function (): void {
+            Route::get('/blocks', [BlocksController::class, 'index']);
+            Route::get('/blocks/{block}', [BlocksController::class, 'show']);
+        });
+        Route::middleware('abilities:table:read')->group(function (): void {
+            Route::get('/tables', [TableBuildersController::class, 'index']);
+            Route::get('/tables/{key}', [TableBuildersController::class, 'show']);
+        });
+        Route::middleware('abilities:menu:read')->group(function (): void {
+            Route::get('/menus', [MenusController::class, 'index']);
+            Route::get('/menus/{menu}', [MenusController::class, 'show']);
+            Route::get('/menus/{menu}/items', [MenusController::class, 'indexItems']);
+        });
+        Route::middleware('abilities:slider:read')->group(function (): void {
+            Route::get('/slider-items', [SliderItemsController::class, 'index']);
+        });
+        Route::middleware('abilities:author:read')->group(function (): void {
+            Route::get('/authors', [AuthorsController::class, 'index']);
+            Route::get('/authors/{key}', [AuthorsController::class, 'show']);
+        });
+
         Route::middleware('abilities:media:read')->group(function (): void {
             Route::get('/posts/{post}/media', [MediaController::class, 'index']);
         });
@@ -57,6 +87,9 @@ Route::prefix('api/v1')
         Route::middleware('abilities:content:write')->group(function (): void {
             Route::post('/posts', [PostsController::class, 'store']);
             Route::patch('/posts/{post}', [PostsController::class, 'update']);
+
+            Route::post('/pages', [PagesController::class, 'store']);
+            Route::patch('/pages/{page}', [PagesController::class, 'update']);
 
             Route::patch('/posts/{post}/params/{key}', [ContentParamsController::class, 'upsert']);
             Route::delete('/posts/{post}/params/{key}', [ContentParamsController::class, 'destroy']);
@@ -83,5 +116,39 @@ Route::prefix('api/v1')
         // ── Deletes (Content) ───────────────────────────────────────────
         Route::middleware('abilities:content:delete')->group(function (): void {
             Route::delete('/posts/{post}', [PostsController::class, 'destroy']);
+            Route::delete('/pages/{page}', [PagesController::class, 'destroy']);
+        });
+
+        Route::middleware('abilities:block:write')->group(function (): void {
+            Route::post('/blocks', [BlocksController::class, 'store']);
+            Route::patch('/blocks/{block}', [BlocksController::class, 'update']);
+            Route::delete('/blocks/{block}', [BlocksController::class, 'destroy']);
+        });
+        Route::middleware('abilities:table:write')->group(function (): void {
+            Route::post('/tables', [TableBuildersController::class, 'store']);
+            Route::patch('/tables/{table}', [TableBuildersController::class, 'update']);
+            Route::delete('/tables/{table}', [TableBuildersController::class, 'destroy']);
+        });
+        Route::middleware('abilities:menu:write')->group(function (): void {
+            Route::post('/menus', [MenusController::class, 'store']);
+            Route::patch('/menus/{menu}', [MenusController::class, 'update']);
+            Route::delete('/menus/{menu}', [MenusController::class, 'destroy']);
+
+            Route::post('/menus/{menu}/items', [MenusController::class, 'storeItem']);
+            Route::patch('/menus/items/{item}', [MenusController::class, 'updateItem']);
+            Route::delete('/menus/items/{item}', [MenusController::class, 'destroyItem']);
+        });
+        Route::middleware('abilities:slider:write')->group(function (): void {
+            Route::post('/slider-items', [SliderItemsController::class, 'store']);
+            Route::patch('/slider-items/{item}', [SliderItemsController::class, 'update']);
+            Route::delete('/slider-items/{item}', [SliderItemsController::class, 'destroy']);
+        });
+        Route::middleware('abilities:author:write')->group(function (): void {
+            Route::post('/authors', [AuthorsController::class, 'store']);
+            Route::patch('/authors/{author}', [AuthorsController::class, 'update']);
+            Route::delete('/authors/{author}', [AuthorsController::class, 'destroy']);
+        });
+        Route::middleware('abilities:media:upload')->group(function (): void {
+            Route::post('/authors/{author}/avatar', [AuthorsController::class, 'uploadAvatar']);
         });
     });
