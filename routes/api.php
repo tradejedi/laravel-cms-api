@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\AuthorsController;
+use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\BackupsController;
 use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\BlocksController;
 use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\CategoriesController;
 use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\CommentsController;
@@ -93,6 +94,9 @@ Route::prefix('api/v1')
             Route::get('/settings', [SettingsController::class, 'index']);
             Route::get('/settings/{key}', [SettingsController::class, 'show']);
         });
+        Route::middleware('abilities:backup:read')->group(function (): void {
+            Route::get('/backups', [BackupsController::class, 'index']);
+        });
 
         Route::middleware('abilities:media:read')->group(function (): void {
             Route::get('/posts/{post}/media', [MediaController::class, 'index']);
@@ -180,5 +184,11 @@ Route::prefix('api/v1')
         Route::middleware('abilities:setting:write')->group(function (): void {
             Route::patch('/settings/{key}', [SettingsController::class, 'upsert']);
             Route::delete('/settings/{key}', [SettingsController::class, 'destroy']);
+        });
+        Route::middleware('abilities:backup:create')->group(function (): void {
+            Route::post('/backups', [BackupsController::class, 'create']);
+        });
+        Route::middleware('abilities:backup:restore')->group(function (): void {
+            Route::post('/backups/{date}/restore', [BackupsController::class, 'restore']);
         });
     });

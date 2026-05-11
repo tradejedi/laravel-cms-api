@@ -50,6 +50,10 @@ enum ApiAbility: string
     case SettingRead = 'setting:read';
     case SettingWrite = 'setting:write';
 
+    case BackupRead = 'backup:read';
+    case BackupCreate = 'backup:create';
+    case BackupRestore = 'backup:restore';
+
     /** @return list<string> */
     public static function values(): array
     {
