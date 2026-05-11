@@ -5,6 +5,7 @@ declare(strict_types=1);
 use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\AuthorsController;
 use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\BlocksController;
 use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\CategoriesController;
+use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\CommentsController;
 use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\ContentParamsController;
 use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\ContentRelationsController;
 use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\FaqsController;
@@ -14,6 +15,8 @@ use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\MenusController;
 use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\PagesController;
 use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\PostsController;
 use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\ProConsController;
+use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\RedirectsController;
+use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\SettingsController;
 use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\SliderItemsController;
 use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\TableBuildersController;
 use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\WhoamiController;
@@ -77,6 +80,18 @@ Route::prefix('api/v1')
         Route::middleware('abilities:author:read')->group(function (): void {
             Route::get('/authors', [AuthorsController::class, 'index']);
             Route::get('/authors/{key}', [AuthorsController::class, 'show']);
+        });
+        Route::middleware('abilities:redirect:read')->group(function (): void {
+            Route::get('/redirects', [RedirectsController::class, 'index']);
+            Route::get('/redirects/{redirect}', [RedirectsController::class, 'show']);
+        });
+        Route::middleware('abilities:comment:moderate')->group(function (): void {
+            Route::get('/comments', [CommentsController::class, 'index']);
+            Route::get('/comments/{comment}', [CommentsController::class, 'show']);
+        });
+        Route::middleware('abilities:setting:read')->group(function (): void {
+            Route::get('/settings', [SettingsController::class, 'index']);
+            Route::get('/settings/{key}', [SettingsController::class, 'show']);
         });
 
         Route::middleware('abilities:media:read')->group(function (): void {
@@ -150,5 +165,20 @@ Route::prefix('api/v1')
         });
         Route::middleware('abilities:media:upload')->group(function (): void {
             Route::post('/authors/{author}/avatar', [AuthorsController::class, 'uploadAvatar']);
+        });
+
+        Route::middleware('abilities:redirect:write')->group(function (): void {
+            Route::post('/redirects', [RedirectsController::class, 'store']);
+            Route::patch('/redirects/{redirect}', [RedirectsController::class, 'update']);
+            Route::delete('/redirects/{redirect}', [RedirectsController::class, 'destroy']);
+        });
+        Route::middleware('abilities:comment:moderate')->group(function (): void {
+            Route::patch('/comments/{comment}/approve', [CommentsController::class, 'approve']);
+            Route::patch('/comments/{comment}/reject', [CommentsController::class, 'reject']);
+            Route::delete('/comments/{comment}', [CommentsController::class, 'destroy']);
+        });
+        Route::middleware('abilities:setting:write')->group(function (): void {
+            Route::patch('/settings/{key}', [SettingsController::class, 'upsert']);
+            Route::delete('/settings/{key}', [SettingsController::class, 'destroy']);
         });
     });
