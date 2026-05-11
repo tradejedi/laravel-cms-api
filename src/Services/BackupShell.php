@@ -27,11 +27,21 @@ class BackupShell
 
     private const TIMEOUT_RESTORE = 900;  // 15 min (download + extract + pg_restore + swap)
 
-    /** Match the DB name to the site key used by the shell scripts. */
+    /**
+     * Map the current host to the site key used by the shell scripts:
+     * derived from APP_URL host, since DB names don't always match
+     * (casinoreview's DB is "gamble", but the script's key is "casinoreview").
+     */
     public function siteKey(): string
     {
-        // The 3 sites use DB names that match the shell-script site keys.
-        return (string) config('database.connections.'.config('database.default').'.database');
+        $host = parse_url((string) config('app.url'), PHP_URL_HOST) ?: '';
+
+        return match (true) {
+            str_contains($host, 'casinoreviewru') => 'casinoreview',
+            str_contains($host, 'casinobonusnews') => 'casinobonusnews',
+            str_contains($host, 'tragamonedas') => 'tragamonedas',
+            default => $host,
+        };
     }
 
     /** @return array<string, mixed> */
