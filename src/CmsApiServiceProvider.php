@@ -7,6 +7,7 @@ namespace CoolMacJedi\LaravelCmsApi;
 use CoolMacJedi\LaravelCmsApi\Console\Commands\IssueToken;
 use CoolMacJedi\LaravelCmsApi\Http\Middleware\AuditApiRequest;
 use CoolMacJedi\LaravelCmsApi\Http\Middleware\ResolveIdempotency;
+use Dedoc\Scramble\Scramble;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Sanctum\Http\Middleware\CheckAbilities;
@@ -32,5 +33,14 @@ final class CmsApiServiceProvider extends ServiceProvider
                 IssueToken::class,
             ]);
         }
+
+        // Move Scramble's docs UI and JSON spec under the api/v1 prefix.
+        // The host app's content router has a `/{slug}` wildcard fallback
+        // that swallows the default `docs/api.json` path before Scramble's
+        // routes (registered on `booted`) can match.
+        Scramble::configure()->expose(
+            ui: 'api/v1/docs',
+            document: 'api/v1/docs.json',
+        );
     }
 }
