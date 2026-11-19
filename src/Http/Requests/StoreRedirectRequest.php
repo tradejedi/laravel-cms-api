@@ -24,8 +24,10 @@ final class StoreRedirectRequest extends FormRequest
 
         return [
             'name' => ['nullable', 'string', 'max:255'],
-            'from_slug' => [$isUpdate ? 'sometimes' : 'required', 'string', 'max:500', $unique],
-            'to_url' => [$isUpdate ? 'sometimes' : 'required', 'string', 'max:2000'],
+            'from_slug' => [$isUpdate ? 'sometimes' : 'required', 'string', 'max:255', $unique],
+            // Absolute http(s) only: a bare "www.site.com" would be sent as a
+            // relative Location and land on /go/www.site.com (404). Column is 1000.
+            'to_url' => [$isUpdate ? 'sometimes' : 'required', 'string', 'url:http,https', 'max:1000'],
             'group_id' => ['nullable', 'integer'],
         ];
     }
