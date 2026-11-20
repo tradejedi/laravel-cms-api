@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace CoolMacJedi\LaravelCmsApi\Http\Requests;
 
+use App\Models\Content;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -20,7 +21,7 @@ final class StorePageRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'slug' => ['required', 'string', 'max:255', 'regex:/^[a-z0-9-]+$/', 'unique:contents,slug'],
+            'slug' => ['required', 'string', 'max:255', 'regex:/^[a-z0-9-]+$/', Content::uniqueSlugRule(Content::TYPE_PAGE)],
             'h1' => ['required', 'string', 'max:255'],
             'short_title' => ['nullable', 'string', 'max:255'],
             'menu_title' => ['nullable', 'string', 'max:255'],

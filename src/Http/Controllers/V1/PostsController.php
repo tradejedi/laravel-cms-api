@@ -57,13 +57,42 @@ final class PostsController extends Controller
         );
     }
 
-    public function show(string $key): ContentResource
+    /**
+     * By id, or by slug. Slugs are unique only within a category, so a slug
+     * shared by several categories needs `?category=<category slug>`.
+     */
+    public function show(string $key, Request $request): ContentResource|JsonResponse
     {
-        $post = is_numeric($key)
-            ? Content::ofTypePost()->with(['category', 'author', 'contentAuthor'])->findOrFail((int) $key)
-            : Content::ofTypePost()->with(['category', 'author', 'contentAuthor'])->where('slug', $key)->firstOrFail();
+        $query = Content::ofTypePost()->with(['category', 'author', 'contentAuthor']);
 
-        return new ContentResource($post);
+        if (is_numeric($key)) {
+            return new ContentResource($query->findOrFail((int) $key));
+        }
+
+        $query->where('slug', $key);
+
+        if ($categorySlug = $request->string('category')->toString()) {
+            $query->whereHas('category', fn ($q) => $q->where('slug', $categorySlug));
+        }
+
+        $posts = $query->limit(10)->get();
+
+        if ($posts->isEmpty()) {
+            abort(404);
+        }
+
+        if ($posts->count() > 1) {
+            return response()->json([
+                'message' => "Slug \"{$key}\" exists in several categories. Use the id or add ?category=<category slug>.",
+                'candidates' => $posts->map(fn (Content $p) => [
+                    'id' => $p->id,
+                    'category' => $p->category?->slug,
+                    'url' => $p->getUrl(),
+                ])->values(),
+            ], 409);
+        }
+
+        return new ContentResource($posts->first());
     }
 
     public function store(StorePostRequest $request): JsonResponse

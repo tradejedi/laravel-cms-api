@@ -26,7 +26,7 @@ final class StorePostRequest extends FormRequest
     {
         return [
             'category_id' => ['required', 'integer', Rule::exists('contents', 'id')->where('type', Content::TYPE_CATEGORY ?? 'category')],
-            'slug' => ['required', 'string', 'max:255', 'regex:/^[a-z0-9-]+$/', 'unique:contents,slug'],
+            'slug' => ['required', 'string', 'max:255', 'regex:/^[a-z0-9-]+$/', Content::uniqueSlugRule(Content::TYPE_POST, (int) $this->input('category_id'))],
             'h1' => ['required', 'string', 'max:255'],
             'short_title' => ['nullable', 'string', 'max:255'],
             'menu_title' => ['nullable', 'string', 'max:255'],

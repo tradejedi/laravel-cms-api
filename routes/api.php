@@ -5,6 +5,7 @@ declare(strict_types=1);
 use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\AuthorsController;
 use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\BackupsController;
 use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\BlocksController;
+use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\BulkContentController;
 use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\CategoriesController;
 use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\CommentsController;
 use CoolMacJedi\LaravelCmsApi\Http\Controllers\V1\ContentParamsController;
@@ -34,6 +35,10 @@ Route::prefix('api/v1')
     ->group(function (): void {
 
         Route::get('/whoami', WhoamiController::class)->name('api.v1.whoami');
+
+        // Bulk actions: the controller checks content:write / content:delete per action.
+        Route::post('/posts/bulk', [BulkContentController::class, 'posts'])->name('api.v1.posts.bulk');
+        Route::post('/pages/bulk', [BulkContentController::class, 'pages'])->name('api.v1.pages.bulk');
 
         // ── Reads ───────────────────────────────────────────────────────
         Route::middleware('abilities:content:read')->group(function (): void {

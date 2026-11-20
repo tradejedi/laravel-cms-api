@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace CoolMacJedi\LaravelCmsApi\Http\Requests;
 
+use App\Models\Content;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -27,7 +28,7 @@ final class UpdatePostRequest extends FormRequest
 
         return [
             'category_id' => ['sometimes', 'integer', Rule::exists('contents', 'id')->where('type', 'category')],
-            'slug' => ['sometimes', 'string', 'max:255', 'regex:/^[a-z0-9-]+$/', Rule::unique('contents', 'slug')->ignore($postId)],
+            'slug' => ['sometimes', 'string', 'max:255', 'regex:/^[a-z0-9-]+$/', Content::uniqueSlugRule(Content::TYPE_POST, $this->targetCategoryId(), (int) $postId)],
             'h1' => ['sometimes', 'string', 'max:255'],
             'short_title' => ['sometimes', 'nullable', 'string', 'max:255'],
             'menu_title' => ['sometimes', 'nullable', 'string', 'max:255'],
@@ -54,5 +55,40 @@ final class UpdatePostRequest extends FormRequest
         unset($data['is_published'], $data['type']);
 
         return $data;
+    }
+
+    /**
+     * Moving a post to another category keeps its slug — make sure it is
+     * free there, otherwise the database index would reject the update.
+     *
+     * @return array<int, callable>
+     */
+    public function after(): array
+    {
+        return [function ($validator): void {
+            if (! $this->filled('category_id') || $this->filled('slug') || $validator->errors()->isNotEmpty()) {
+                return;
+            }
+
+            $slug = Content::withTrashed()->whereKey((int) $this->route('post'))->value('slug');
+            $taken = Content::slugSiblings(Content::TYPE_POST, (int) $this->input('category_id'))
+                ->where('slug', $slug)
+                ->whereKeyNot((int) $this->route('post'))
+                ->exists();
+
+            if ($taken) {
+                $validator->errors()->add('category_id', "The target category already has a post with slug \"{$slug}\". Send a new slug together with category_id.");
+            }
+        }];
+    }
+
+    /** The category the post will be in after this update (slugs are unique per category). */
+    private function targetCategoryId(): ?int
+    {
+        if ($this->filled('category_id')) {
+            return (int) $this->input('category_id');
+        }
+
+        return Content::withTrashed()->whereKey((int) $this->route('post'))->value('category_id');
     }
 }

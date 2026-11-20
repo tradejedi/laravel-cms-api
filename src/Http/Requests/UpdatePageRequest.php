@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace CoolMacJedi\LaravelCmsApi\Http\Requests;
 
+use App\Models\Content;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 final class UpdatePageRequest extends FormRequest
 {
@@ -18,7 +18,7 @@ final class UpdatePageRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'slug' => ['sometimes', 'string', 'max:255', 'regex:/^[a-z0-9-]+$/', Rule::unique('contents', 'slug')->ignore($this->route('page'))],
+            'slug' => ['sometimes', 'string', 'max:255', 'regex:/^[a-z0-9-]+$/', Content::uniqueSlugRule(Content::TYPE_PAGE, null, (int) $this->route('page'))],
             'h1' => ['sometimes', 'string', 'max:255'],
             'short_title' => ['sometimes', 'nullable', 'string', 'max:255'],
             'menu_title' => ['sometimes', 'nullable', 'string', 'max:255'],
